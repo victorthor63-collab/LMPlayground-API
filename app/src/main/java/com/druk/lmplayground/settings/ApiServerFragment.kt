@@ -33,11 +33,13 @@ class ApiServerFragment : Fragment() {
             PlaygroundTheme {
                 val status by viewModel.status.collectAsStateWithLifecycle()
                 val loadedModel by viewModel.loadedModel.collectAsStateWithLifecycle()
+                val wifiIp by viewModel.wifiIp.collectAsStateWithLifecycle()
                 val port by viewModel.port.collectAsStateWithLifecycle()
                 val apiKey by viewModel.apiKey.collectAsStateWithLifecycle()
                 ApiServerScreen(
                     status = status,
                     loadedModel = loadedModel,
+                    wifiIp = wifiIp,
                     port = port,
                     apiKey = apiKey,
                     onEnabledChange = { viewModel.setEnabled(it) },
