@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Article
+import androidx.compose.material.icons.outlined.Api
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.HelpOutline
@@ -62,7 +63,7 @@ import java.util.Locale
  * [promptsDetailContent] slots — the caller owns the ViewModels and passes
  * the appropriate Composable when on tablet.
  */
-private enum class SettingsDetail { Models, Prompts, Language, Tools, SoundHaptic, Advanced, PrivacyPolicy, Faq }
+private enum class SettingsDetail { Models, Prompts, Language, Tools, SoundHaptic, Advanced, ApiServer, PrivacyPolicy, Faq }
 
 @Composable
 fun SettingsScreen(
@@ -75,6 +76,7 @@ fun SettingsScreen(
     onToolsClick: () -> Unit,
     onSoundHapticClick: () -> Unit,
     onAdvancedClick: () -> Unit,
+    onApiServerClick: () -> Unit,
     onSendFeedbackClick: () -> Unit,
     appVersion: String,
     /**
@@ -107,6 +109,10 @@ fun SettingsScreen(
      * Tablet-only mirror of [modelsDetailContent] for the Advanced section.
      */
     advancedDetailContent: (@Composable () -> Unit)? = null,
+    /**
+     * Tablet-only mirror of [modelsDetailContent] for the Local API server.
+     */
+    apiServerDetailContent: (@Composable () -> Unit)? = null,
     /**
      * Optional deep-link target: when "tools", the screen opens directly on the
      * Tools detail (tablet). Used by the What's New "Set up tools" button.
@@ -232,6 +238,13 @@ fun SettingsScreen(
                                 onAdvancedClick()
                             }
                         },
+                        onApiServerClick = {
+                            if (apiServerDetailContent != null) {
+                                detail = SettingsDetail.ApiServer
+                            } else {
+                                onApiServerClick()
+                            }
+                        },
                         onPrivacyPolicyClick = { detail = SettingsDetail.PrivacyPolicy },
                         onFaqClick = { detail = SettingsDetail.Faq },
                         onCrashEngineClick = onCrashEngineClick
@@ -249,6 +262,7 @@ fun SettingsScreen(
                 SettingsDetail.Tools -> stringResource(R.string.tools)
                 SettingsDetail.SoundHaptic -> stringResource(R.string.sound_and_haptic)
                 SettingsDetail.Advanced -> stringResource(R.string.advanced)
+                SettingsDetail.ApiServer -> stringResource(R.string.api_server)
                 SettingsDetail.PrivacyPolicy -> stringResource(R.string.privacy_policy)
                 SettingsDetail.Faq -> stringResource(R.string.faq)
                 null -> ""
@@ -271,6 +285,7 @@ fun SettingsScreen(
                         SettingsDetail.Tools -> toolsDetailContent?.invoke()
                         SettingsDetail.SoundHaptic -> soundHapticDetailContent?.invoke()
                         SettingsDetail.Advanced -> advancedDetailContent?.invoke()
+                        SettingsDetail.ApiServer -> apiServerDetailContent?.invoke()
                         SettingsDetail.PrivacyPolicy ->
                             PrivacyPolicyContent(onSendFeedbackClick = onSendFeedbackClick)
                         SettingsDetail.Faq -> FaqContent()
@@ -309,6 +324,7 @@ fun SettingsScreen(
                 onToolsClick = onToolsClick,
                 onSoundHapticClick = onSoundHapticClick,
                 onAdvancedClick = onAdvancedClick,
+                onApiServerClick = onApiServerClick,
                 onPrivacyPolicyClick = onPrivacyPolicyClick,
                 onFaqClick = onFaqClick,
                 onCrashEngineClick = onCrashEngineClick,
@@ -336,6 +352,7 @@ private fun SettingsList(
     onToolsClick: () -> Unit,
     onSoundHapticClick: () -> Unit,
     onAdvancedClick: () -> Unit,
+    onApiServerClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit,
     onFaqClick: () -> Unit,
     onCrashEngineClick: (() -> Unit)?,
@@ -388,6 +405,15 @@ private fun SettingsList(
             subtitle = stringResource(R.string.advanced_subtitle),
             selected = selectedDetail == SettingsDetail.Advanced,
             onClick = onAdvancedClick
+        )
+
+        // Local API server row
+        SettingsRow(
+            icon = Icons.Outlined.Api,
+            title = stringResource(R.string.api_server),
+            subtitle = stringResource(R.string.api_server_settings_summary),
+            selected = selectedDetail == SettingsDetail.ApiServer,
+            onClick = onApiServerClick
         )
 
         // Language row
@@ -519,6 +545,7 @@ private fun SettingsScreenPreview() {
             onToolsClick = {},
             onSoundHapticClick = {},
             onAdvancedClick = {},
+            onApiServerClick = {},
             onPrivacyPolicyClick = {},
             onFaqClick = {},
             onSendFeedbackClick = {},

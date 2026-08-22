@@ -234,6 +234,9 @@ class SettingsFragment : Fragment() {
                     onAdvancedClick = {
                         findNavController().navigateFromSettings(R.id.action_settings_to_advanced)
                     },
+                    onApiServerClick = {
+                        findNavController().navigateFromSettings(R.id.action_settings_to_api_server)
+                    },
                     onSendFeedbackClick = {
                         val email = getString(R.string.privacy_policy_contact_email)
                         val intent = Intent(Intent.ACTION_SENDTO).apply {

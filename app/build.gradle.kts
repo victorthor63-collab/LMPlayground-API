@@ -387,6 +387,8 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.okhttp3)
+    // Embedded HTTP server backing the local OpenAI-compatible API
+    implementation(libs.nanohttpd)
     implementation(libs.jsoup)
     implementation("androidx.javascriptengine:javascriptengine:1.0.0-beta01")
     // PDF text extraction for document (RAG) attachments
