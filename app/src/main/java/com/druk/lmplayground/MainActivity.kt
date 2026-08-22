@@ -64,5 +64,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.content_main)
+
+        // Relaunch the local API server if the user had it enabled. Started
+        // from a foreground Activity so the Foreground Service start is allowed.
+        com.druk.lmplayground.apiserver.ApiServerController.syncFromPrefs(this)
     }
 }

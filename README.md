@@ -12,6 +12,7 @@ LM Playground is an Android application for running Large Language Models locall
 ## Features
 
 - **On-device inference** - no cloud, no API keys, fully offline
+- **Local OpenAI-compatible API** - serve the loaded model to other devices on your WiFi through the standard OpenAI REST API (`/v1/chat/completions`, `/v1/models`); binds to the WiFi interface only, protected by a generated key, with an in-app request log for debugging
 - **Document Q&A (RAG)** - attach PDF, Word, EPUB, HTML, Markdown, or plain-text files and ask about them; on-device semantic search with EmbeddingGemma feeds the most relevant passages to any chat model
 - **Vision/image input** - attach a photo from your gallery or camera and ask vision-capable models about it (Gemma 4, Gemma 3, Qwen 3.5, Ministral 3)
 - **Rich markdown** in chat responses - headers, code blocks, lists, and more
@@ -60,6 +61,47 @@ LM Playground is an Android application for running Large Language Models locall
 </details>
 
 Most models use Q4_K_M quantization; Qwen 3.5 uses Q3_K_M, and GPT-OSS ships in its native MXFP4 format. See [`ModelInfoProvider.kt`](app/src/main/java/com/druk/lmplayground/models/ModelInfoProvider.kt) for the full list.
+
+## Local API server
+
+LM Playground can expose the currently-loaded model to other devices on your
+local network through an **OpenAI-compatible HTTP API**, so you can point tools
+like the `openai` SDK, LM Studio-style clients, or Open WebUI at your phone.
+
+- **WiFi interface only.** The server binds to the phone's WiFi IPv4 address,
+  never `0.0.0.0` - it is never reachable over cellular, USB tethering, or a
+  VPN interface. If WiFi drops, the server stops until it reconnects.
+- **Key-protected.** A bearer key is generated on first use; every request must
+  send `Authorization: Bearer <key>`. The key can be regenerated at any time.
+- **Serves the loaded model.** The API answers with whatever model you have
+  loaded in the app (load one in the chat first). It creates its own inference
+  session per request, so it never disturbs your in-app conversation.
+- **Request log.** A built-in debugging view shows live incoming requests and
+  responses (method, path, status, timing, and bodies) so you can watch traffic
+  from the phone.
+
+Enable it under **Settings → Local API server**: flip the toggle, then copy the
+shown base URL and API key. Endpoints:
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET`  | `/v1/models` | Lists the currently-loaded model |
+| `POST` | `/v1/chat/completions` | Chat completions, streaming and non-streaming |
+
+Example:
+
+```
+curl http://<phone-wifi-ip>:8080/v1/chat/completions \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello"}]}'
+```
+
+The port (default `8080`) is configurable, and `temperature`, `top_p`, `seed`,
+`max_tokens`, `stop`, and `stream` are honored. A foreground-service
+notification keeps the server alive while the app is backgrounded. Since this
+runs on-device, requests are served one at a time; `max_tokens` is enforced by a
+character-based estimate, as no tokenizer is exposed to the app layer.
 
 ## Install
 

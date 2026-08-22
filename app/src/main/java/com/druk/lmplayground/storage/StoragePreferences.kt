@@ -11,6 +11,16 @@ class StoragePreferences(context: Context) {
 
     companion object {
         private const val KEY_URI = "model_storage_uri"
+
+        const val DEFAULT_API_SERVER_PORT = 8080
+
+        /** `sk-`-prefixed random token, matching the shape OpenAI clients expect. */
+        private fun generateApiKey(): String {
+            val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+            val random = java.security.SecureRandom()
+            val body = (1..40).map { alphabet[random.nextInt(alphabet.length)] }.joinToString("")
+            return "sk-lmp-$body"
+        }
     }
 
     var modelStorageUri: Uri?
@@ -139,6 +149,40 @@ class StoragePreferences(context: Context) {
 
     fun setVisionModuleHintShown(filename: String) {
         prefs.edit { putBoolean("vision_hint_$filename", true) }
+    }
+
+    // --- Local OpenAI-compatible API server ---
+    //
+    // The server binds to the WiFi interface only and is protected by a
+    // generated bearer key. All three settings are surfaced in
+    // Settings → Local API server.
+
+    /** Whether the user has turned the local API server on. */
+    var apiServerEnabled: Boolean
+        get() = prefs.getBoolean("api_server_enabled", false)
+        set(value) = prefs.edit { putBoolean("api_server_enabled", value) }
+
+    /** TCP port the server listens on (WiFi interface only). */
+    var apiServerPort: Int
+        get() = prefs.getInt("api_server_port", DEFAULT_API_SERVER_PORT)
+        set(value) = prefs.edit { putInt("api_server_port", value) }
+
+    /**
+     * Bearer token clients must send as `Authorization: Bearer <key>`.
+     * Generated lazily on first read so a key always exists before the
+     * server can be enabled; [regenerateApiServerKey] rotates it.
+     */
+    val apiServerKey: String
+        get() {
+            val existing = prefs.getString("api_server_key", null)
+            if (existing != null) return existing
+            return regenerateApiServerKey()
+        }
+
+    fun regenerateApiServerKey(): String {
+        val key = generateApiKey()
+        prefs.edit { putString("api_server_key", key) }
+        return key
     }
 
     fun clear() {

@@ -169,6 +169,7 @@ class ModelRuntime(
         session = null
         this.model = null
         modelFileHandle = null
+        prevModel?.let { com.druk.lmplayground.apiserver.LoadedModelHolder.clear(it) }
 
         withContext(Dispatchers.Default) {
             prevSession?.destroy()
@@ -333,9 +334,24 @@ class ModelRuntime(
                         listener.onLoadStatus(
                             app.getString(R.string.replay_history_too_large)
                         )
+                        com.druk.lmplayground.apiserver.LoadedModelHolder.clear(llamaModel)
                         return@withContext
                     }
                 }
+                // Expose the loaded model to the local API server (if enabled).
+                // The server creates its own sessions on this handle, so it
+                // shares the model with the UI without touching this session.
+                com.druk.lmplayground.apiserver.LoadedModelHolder.publish(
+                    com.druk.lmplayground.apiserver.LoadedModelHolder.LoadedModel(
+                        model = llamaModel,
+                        id = model.filename,
+                        displayName = model.name,
+                        contextTrainSize = nCtxTrain,
+                        supportsThinking = thinkingSupported,
+                        supportsVision = visionSupported,
+                        supportsToolCalling = toolCallingSupported,
+                    )
+                )
                 listener.onModelReady(model)
             } catch (t: Throwable) {
                 // Surface the failure to the user instead of leaving
@@ -565,6 +581,7 @@ class ModelRuntime(
         }
 
         // Still pointing at the dead handles — clean them up.
+        com.druk.lmplayground.apiserver.LoadedModelHolder.clear(model)
         session = null
         model = null
         modelFileHandle?.close()
@@ -589,6 +606,7 @@ class ModelRuntime(
         session = null
         model = null
         modelFileHandle = null
+        prevModel?.let { com.druk.lmplayground.apiserver.LoadedModelHolder.clear(it) }
 
         withContext(Dispatchers.Default) {
             prevSession?.destroy()
@@ -612,6 +630,7 @@ class ModelRuntime(
         this.session = null
         this.model = null
         modelFileHandle = null
+        model?.let { com.druk.lmplayground.apiserver.LoadedModelHolder.clear(it) }
 
         CoroutineScope(Dispatchers.Default).launch {
             job?.cancel()

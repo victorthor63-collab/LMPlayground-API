@@ -409,4 +409,32 @@
     <string name="debug_crash_engine_not_connected" translatable="false">Inference engine isn\'t connected.</string>
     <string name="debug_crash_engine_done" translatable="false">Crash injected — check the chat for the recovery message.</string>
 
+    <!-- Local OpenAI-compatible API server. -->
+    <string name="api_server">Local API server</string>
+    <string name="api_server_settings_summary">Serve the loaded model over an OpenAI-compatible API on WiFi</string>
+    <string name="api_server_enable">Enable API server</string>
+    <string name="api_server_enable_summary">Listens on the WiFi interface only, protected by an API key</string>
+    <string name="api_server_port">Port</string>
+    <string name="api_server_base_url">Base URL</string>
+    <string name="api_server_api_key">API key</string>
+    <string name="api_server_regenerate_key">Regenerate key</string>
+    <string name="api_server_copy">Copy</string>
+    <string name="api_server_copied">Copied to clipboard</string>
+    <string name="api_server_status_running">Listening on %1$s</string>
+    <string name="api_server_status_no_wifi">Connect to WiFi to start the server</string>
+    <string name="api_server_status_bind_failed">Could not start server: %1$s</string>
+    <string name="api_server_status_off">Server is off</string>
+    <string name="api_server_no_model_warning">No model is loaded — load one in the chat to answer requests</string>
+    <string name="api_server_curl_hint">Example request</string>
+    <string name="api_server_debug_log">Request log</string>
+    <string name="api_server_debug_log_summary">Watch live requests and responses</string>
+    <string name="api_server_debug_log_empty">No requests yet. Traffic will appear here as clients call the API.</string>
+    <string name="api_server_debug_clear">Clear</string>
+    <string name="api_server_debug_request">Request</string>
+    <string name="api_server_debug_response">Response</string>
+    <string name="api_server_notification_channel_name">API server</string>
+    <string name="api_server_notification_title">LM Playground API server</string>
+    <string name="api_server_notification_starting">Starting…</string>
+    <string name="api_server_notification_running">Listening on %1$s</string>
+
 </resources>

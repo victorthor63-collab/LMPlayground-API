@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Local OpenAI-compatible API server: inspect the active networks to
+         find the WiFi interface's address so the server binds to it only
+         (never cellular, never 0.0.0.0). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
@@ -59,6 +64,16 @@
         <service
             android:name="com.druk.lmplayground.inference.LlamaService"
             android:process=":llama"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
+
+        <!-- Local OpenAI-compatible API server.
+             Runs in the main process (it drives inference through the same
+             app-scoped InferenceClient the UI uses). Promoted to foreground
+             while listening so the process — and the open WiFi socket — are
+             not evicted under memory pressure. -->
+        <service
+            android:name="com.druk.lmplayground.apiserver.ApiServerService"
             android:foregroundServiceType="dataSync"
             android:exported="false" />
 
