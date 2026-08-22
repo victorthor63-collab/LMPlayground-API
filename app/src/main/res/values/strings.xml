@@ -415,6 +415,7 @@
     <string name="api_server_enable">Enable API server</string>
     <string name="api_server_enable_summary">Listens on the WiFi interface only, protected by an API key</string>
     <string name="api_server_port">Port</string>
+    <string name="api_server_wifi_address">WiFi IP address</string>
     <string name="api_server_base_url">Base URL</string>
     <string name="api_server_api_key">API key</string>
     <string name="api_server_regenerate_key">Regenerate key</string>

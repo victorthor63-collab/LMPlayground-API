@@ -49,6 +49,7 @@ import com.druk.lmplayground.apiserver.LoadedModelHolder
 fun ApiServerScreen(
     status: ApiServerController.Status,
     loadedModel: LoadedModelHolder.LoadedModel?,
+    wifiIp: String?,
     port: Int,
     apiKey: String,
     onEnabledChange: (Boolean) -> Unit,
@@ -76,6 +77,7 @@ fun ApiServerScreen(
         ApiServerContent(
             status = status,
             loadedModel = loadedModel,
+            wifiIp = wifiIp,
             port = port,
             apiKey = apiKey,
             onEnabledChange = onEnabledChange,
@@ -94,6 +96,7 @@ fun ApiServerScreen(
 fun ApiServerContent(
     status: ApiServerController.Status,
     loadedModel: LoadedModelHolder.LoadedModel?,
+    wifiIp: String?,
     port: Int,
     apiKey: String,
     onEnabledChange: (Boolean) -> Unit,
@@ -140,6 +143,22 @@ fun ApiServerContent(
                 stringResource(R.string.api_server_no_model_warning),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        // WiFi IP address — always visible (even before enabling) so the host
+        // is easy to point a client at. Shown as <ip>:<port>.
+        if (wifiIp != null) {
+            CopyField(
+                label = stringResource(R.string.api_server_wifi_address),
+                value = "$wifiIp:$port",
+                onCopy = onCopy,
+            )
+        } else {
+            Text(
+                stringResource(R.string.api_server_status_no_wifi),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
