@@ -110,7 +110,7 @@ android {
                 arguments += "-DLLAMA_OPENSSL=OFF"
                 arguments += "-DGGML_LLAMAFILE=OFF"
                 arguments += "-DGGML_NATIVE=OFF"
-                arguments += "-DGGML_VULKAN=ON"
+                arguments += "-DGGML_VULKAN=OFF"
                 vulkanGlslcPath?.let { arguments += "-DVulkan_GLSLC_EXECUTABLE=$it" }
                 vulkanIncludeDir?.let { arguments += "-DVulkan_INCLUDE_DIR=$it" }
                 spirvHeadersDir?.let { arguments += "-DSPIRV-Headers_DIR=$it" }
