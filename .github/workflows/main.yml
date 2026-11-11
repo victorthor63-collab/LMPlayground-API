@@ -1,0 +1,17 @@
+name: Build LMPlayground API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Verificar arquivos
+        run: |
+          echo "Repositorio Elias conectado!"
+          ls -la
