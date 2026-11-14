@@ -19,13 +19,15 @@ jobs:
           submodules: recursive
 
       - name: Configurar Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Configurar Android
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Aceitar licenças Android
         run: |
