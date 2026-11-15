@@ -1,3 +1,4 @@
+
 package com.druk.lmplayground.data
 
 import android.content.Context
@@ -14,9 +15,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SystemPromptEntity::class,
         PromptUsage::class,
         RagDocumentEntity::class,
-        RagChunkEntity::class
+        RagChunkEntity::class,
+        MemoryEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,6 +28,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun systemPromptDao(): SystemPromptDao
 
     abstract fun ragDao(): RagDao
+
+    abstract fun memoryDao(): MemoryDao
 
     companion object {
         @Volatile
@@ -55,21 +59,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /**
-         * System-prompt feature in one shot. The intermediate schemas 5/6
-         * never shipped to real users, so we collapse the three dev-only
-         * migration steps into a single 4 → 5 migration.
-         */
         private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Denormalized system-prompt text stored alongside each chat
-                // session so reopening a conversation replays with the same
-                // prompt it was started with.
                 db.execSQL(
                     "ALTER TABLE chat_sessions ADD COLUMN systemPrompt TEXT NOT NULL DEFAULT ''"
                 )
 
-                // Library of reusable system prompts.
                 db.execSQL(
                     "CREATE TABLE IF NOT EXISTS system_prompts (" +
                         "id TEXT NOT NULL PRIMARY KEY, " +
@@ -79,7 +74,6 @@ abstract class AppDatabase : RoomDatabase() {
                         ")"
                 )
 
-                // Per-model MRU markers.
                 db.execSQL(
                     "CREATE TABLE IF NOT EXISTS prompt_usage (" +
                         "promptId TEXT NOT NULL, " +
@@ -89,6 +83,7 @@ abstract class AppDatabase : RoomDatabase() {
                         "FOREIGN KEY (promptId) REFERENCES system_prompts(id) ON DELETE CASCADE" +
                         ")"
                 )
+
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS index_prompt_usage_modelFilename " +
                         "ON prompt_usage (modelFilename)"
@@ -96,10 +91,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /**
-         * Generic per-conversation metadata blob (JSON). Backs
-         * [ConversationMetadata]; first use is the web_search link map.
-         */
         private val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -108,23 +99,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /**
-         * Persist attached images: each message can reference an on-disk image
-         * copy ([ChatMessageEntity.imagePath]) so saved conversations keep their
-         * images across restarts.
-         */
         private val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE chat_messages ADD COLUMN imagePath TEXT")
             }
         }
 
-        /**
-         * Document (RAG) attachments: per-session documents plus their
-         * chunked text and embedding vectors. Column shapes must match the
-         * Room-generated schema for [RagDocumentEntity]/[RagChunkEntity]
-         * exactly (index names included) or validation fails on open.
-         */
         private val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -144,10 +124,12 @@ abstract class AppDatabase : RoomDatabase() {
                         "ON UPDATE NO ACTION ON DELETE CASCADE" +
                         ")"
                 )
+
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS index_rag_documents_sessionId " +
                         "ON rag_documents (sessionId)"
                 )
+
                 db.execSQL(
                     "CREATE TABLE IF NOT EXISTS rag_chunks (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
@@ -159,9 +141,37 @@ abstract class AppDatabase : RoomDatabase() {
                         "ON UPDATE NO ACTION ON DELETE CASCADE" +
                         ")"
                 )
+
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS index_rag_chunks_documentId " +
                         "ON rag_chunks (documentId)"
+                )
+            }
+        }
+
+        // Adiciona a tabela de memórias sem apagar os dados existentes.
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS memories (" +
+                        "id TEXT NOT NULL PRIMARY KEY, " +
+                        "content TEXT NOT NULL, " +
+                        "category TEXT NOT NULL, " +
+                        "createdAt INTEGER NOT NULL, " +
+                        "updatedAt INTEGER NOT NULL, " +
+                        "importance INTEGER NOT NULL, " +
+                        "source TEXT NOT NULL" +
+                        ")"
+                )
+
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_memories_category " +
+                        "ON memories (category)"
+                )
+
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_memories_updatedAt " +
+                        "ON memories (updatedAt)"
                 )
             }
         }
@@ -180,7 +190,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_4_5,
                         MIGRATION_5_6,
                         MIGRATION_6_7,
-                        MIGRATION_7_8
+                        MIGRATION_7_8,
+                        MIGRATION_8_9
                     )
                     .build().also { INSTANCE = it }
             }
